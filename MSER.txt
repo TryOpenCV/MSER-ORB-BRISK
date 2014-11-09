@@ -1,0 +1,39 @@
+MSER
+class MSER : public FeatureDetector
+MSER - Maximally stable extremal region extractor.
+MSER используется для выявления регионов в цифровом изображении, которые отличаются по свойствам (яркость, цвет) по сравнению с районами, прилегающих к этим регионам.
+Эта методика была предложена для того, чтобы найти соответствие между элементами изображения из двух изображений.
+
+- Существет две разные раелизации MSER : для серых изображений и для цветных
+- Алгоритм для серых изображений получен из "Linear Time Maximally Stable Extremal Regions"
+- Алгоритм для цветных изображений получен из "Maximally Stable Colour Regions for Recognition and Match"
+- Алгоритм для цветных изображений занимает в 3-4 раза больше времени, чем для серых
+- Класс из указанного изображения возвращает MSERs
+- Каждый MSER представлен в виде региона (vector<Point>, see findContours)
+- Регионы представленны в виде множества точек
+
+class MSER : public CvMSERParams
+{
+public:
+    // конструктор
+    MSER();
+    // конструктор с инициализацией всех параметров алгоритма
+    MSER( 
+		int _delta,  //! delta, в коде сравнивает (size_{i}-size_{i-delta})/size_{i-delta}
+		int _min_area,  //! удаляет область, которая больше чем maxArea
+		int _max_area,  //! удаляет область которая меньше, чем minArea
+        float _max_variation,   //! удаляет область, размер которой равен размеру дочерней
+		float _min_diversity,   //! проверка на diversity < min_diversity
+		
+		// Следующие параметры используются только для цветных изображений
+        int _max_evolution,   //! шаги перестроения
+		double _area_threshold,  //! пороговая зона для вызова переинициализации
+        double _min_margin,   //! пропуск слишком маленьких граней
+		int _edge_blur_size   //! размер диафрагмы для размытия крас
+		);
+		  
+    void operator()( const Mat& image, vector<vector<Point> >& msers, const Mat& mask ) const;
+};
+
+Класс включает в себя все параметры алгоритма извлеченя MSER (http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions)
+Примеры реализации на Python opencv_source_code/samples/python2/mser.py
