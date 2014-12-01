@@ -1,30 +1,102 @@
 class BRISK : public Feature2D
-РљР»Р°СЃСЃ РґР»СЏ СЂРµР°Р»РёР·Р°С†РёРё BRISK РѕР±РЅР°СЂСѓР¶РµРЅРёСЏ РєР»СЋС‡РµРІС‹С… С‚РѕС‡РµРє.
+Класс для реализации BRISK обнаружения ключевых точек.
 
 
-BRISK РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
+BRISK конструктор
 C++: BRISK::BRISK(
-int thresh=30,  //РїРѕСЂРѕРі РѕР±РЅР°СЂСѓР¶РµРЅРёСЏ FAST/AGAST
-int octaves=3,   // РѕРєС‚Р°РІС‹ РѕР±РЅР°СЂСѓР¶РµРЅРёСЏ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ 0, С‡С‚РѕР±С‹ СЃРґРµР»Р°С‚СЊ РµРґРёРЅСѓСЋ С€РєР°Р»Сѓ
-float patternScale=1.0f  // РїСЂРёРјРµРЅРёС‚СЊ СЌС‚Сѓ С€РєР°Р»Сѓ СЃ РјРѕРґРµР»СЊСЋ, РёСЃРїРѕР»СЊР·СѓРµРјРѕР№ РґР»СЏ РІС‹Р±РѕСЂРєРё РѕРєСЂРµСЃС‚РЅРѕСЃС‚Рё С…Р°СЂР°РєС‚РµСЂРЅРѕР№ С‚РѕС‡РєРё
+int thresh=30,  //порог обнаружения FAST/AGAST
+int octaves=3,   // октавы обнаружения. Используйте 0, чтобы сделать единую шкалу
+float patternScale=1.0f  // применить эту шкалу с моделью, используемой для выборки окрестности характерной точки
 )
 
-BRISK РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕР№ РјРѕРґРµР»Рё
+BRISK конструктор для пользовательской модели
 C++: BRISK::BRISK(
-std::vector<float>& radiusList, // РѕРїСЂРµРґРµР»СЏРµС‚ СЂР°РґРёСѓСЃС‹ (РІ РїРёРєСЃРµР»СЏС…),РІРѕРєСЂСѓРі С‚РѕС‡РєРё РґР»СЏ РІР·СЏС‚РёСЏ РѕР±СЂР°Р·С†РѕРІ
-std::vector<int>& numberList,   // РѕРїСЂРµРґРµР»СЏРµС‚ С‡РёСЃР»Рѕ С‚РѕС‡РµРє РѕС‚Р±РѕСЂР° РїСЂРѕР± РЅР° РѕРєСЂСѓР¶РЅРѕСЃС‚Рё РІС‹Р±РѕСЂРєРё. Р”РѕР»Р¶РЅРѕ Р±С‹С‚СЊ С‚РѕРіРѕ Р¶Рµ СЂР°Р·РјРµСЂР° С‡С‚Рѕ Рё radiusList
-float dMax=5.85f,  // РџРѕСЂРѕРі РґР»СЏ РєРѕСЂРѕС‚РєРёС… РїР°СЂ, РёСЃРїРѕР»СЊР·СѓРµРјС‹С… РґР»СЏ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РґРµСЃРєСЂРёРїС‚РѕСЂРѕРІ
-float dMin=8.2f,  // РџРѕСЂРѕРі РґР»СЏ РґР»РёРЅРЅС‹С… РїР°СЂ, РёСЃРїРѕР»СЊР·СѓРµРјС‹С… РґР»СЏ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РґРµСЃРєСЂРёРїС‚РѕСЂРѕРІ
-std::vector<int> indexChange=std::vector<int>()  //  РёРЅРґРµРєСЃ РїРµСЂРµРЅР°Р·РЅР°С‡РµРЅРёСЏ Р±РёС‚
+std::vector<float>& radiusList, // определяет радиусы (в пикселях),вокруг точки для взятия образцов
+std::vector<int>& numberList,   // определяет число точек отбора проб на окружности выборки. Должно быть того же размера что и radiusList
+float dMax=5.85f,  // Порог для коротких пар, используемых для формирования дескрипторов
+float dMin=8.2f,  // Порог для длинных пар, используемых для формирования дескрипторов
+std::vector<int> indexChange=std::vector<int>()  //  индекс переназначения бит
 )
 
 
 BRISK::operator()
-РќР°С…РѕРґРёС‚ РєР»СЋС‡РµРІС‹Рµ С‚РѕС‡РєРё РЅР° РёР·РѕР±СЂР°Р¶РµРЅРёРё Рё РІС‹С‡РёСЃР»СЏРµС‚ РёС… РґРµСЃРєСЂРёРїС‚РѕСЂ
+Находит ключевые точки на изображении и вычисляет их дескриптор
 C++: void BRISK::operator()(
-	InputArray image,  // РІС…РѕРґРЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРёРµ 8 Р±РёС‚ РѕС‚С‚РµРЅРєРѕРІ СЃРµСЂРѕРіРѕ
-	InputArray mask,    // РњР°СЃРєР° РѕРїРµСЂР°С†РёРё
-	vector<KeyPoint>& keypoints,   // РІС‹С…РѕРґРЅРѕР№ РІРµРєС‚РѕСЂ РєР»СЋС‡РµРІС‹С… С‚РѕС‡РµРє
-	OutputArray descriptors,    // Р’С‹С…РѕРґРЅС‹Рµ РґРµСЃРєСЂРёРїС‚РѕСЂС‹. cv::noArray() РІ СЃР»СѓС‡Р°Рµ, РµСЃР»Рё РІ РЅРёС… РЅРµС‚Сѓ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё.
-	bool useProvidedKeypoints=false   // true - РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РїСЂРµРґРѕСЃС‚Р°РІР»РµРЅРЅРѕРіРѕ РІРµРєС‚РѕСЂР° РєР»СЋС‡РµРІС‹С… С‚РѕС‡РµРє. False - РѕР±РЅР°СЂСѓР¶РµРЅРёРµ С‚РѕС‡РµРє.
+	InputArray image,  // входное изображениие 8 бит оттенков серого
+	InputArray mask,    // Маска операции
+	vector<KeyPoint>& keypoints,   // выходной вектор ключевых точек
+	OutputArray descriptors,    // Выходные дескрипторы. cv::noArray() в случае, если в них нету необходимости.
+	bool useProvidedKeypoints=false   // true - использование предоставленного вектора ключевых точек. False - обнаружение точек.
 	) 
+
+	
+С++ пример.
+	
+#include <iostream>
+#include <stdlib.h>
+
+#include <opencv2/features2d/features2d.hpp>  // библиотека для  cv::BRISK
+#include <opencv2/highgui/highgui.hpp>        // библиотека для cv::imread
+
+
+
+int main(int argc, char **argv) {
+
+//Получаем изображение
+std::string in_filename = argv[1]; 
+
+//порог обнаружения FAST/AGAST
+int thresh = argc>3 ? atoi(argv[3]) : 30;
+
+// октавы обнаружения. Используйте 0, чтобы сделать единую шкалу
+int octaves = argc>4 ? atoi(argv[4]) : 3;
+
+// применить эту шкалу с моделью, используемой для выборки окрестности характерной точки
+float pattern_scale = 1;
+
+cv::Mat in_pic = cv::imread(in_filename);
+
+
+  // Инициализация BRISK
+
+cv::BRISK brisk(thresh, octaves, pattern_scale);
+brisk.create("Feature2D.BRISK");
+
+// вычисление ключевых точек, используя BRISK
+
+  std::vector<cv::KeyPoint> keypoints;
+  brisk.detect(in_pic, keypoints);
+  std::cout << "detected " << keypoints.size() << " keypoints" << std::endl;
+
+}
+
+--------------------------
+
+Сравнение BRISK и ORB
+
+// BRISK параметры
+int Threshl=30;
+int Octaves=4;
+float PatternScales=1.0f;
+
+// ORB pпараметры
+int nFeatures=2000;
+float scaleFactor=1.2f;
+int nLevels=8;
+
+// Инициализация BRISK
+BRISK  BRISKD(Threshl, Octaves, PatternScales);
+
+// Инициализация ORB
+ORB ORBD(nFeatures, scaleFactor, nLevels);
+
+vector<KeyPoint> kpts;
+Mat descriptors;
+
+Mat img = cv::imread("Path to the bolt image", IMREAD_GRAYSCALE );
+
+// вычисление ключевых точек, используя ORB
+ORBD.detect(img,kpts); 
+
+// вычисление ключевых точек, используя BRISK
+BRISKD.compute(img, kpts, descriptors); 	
